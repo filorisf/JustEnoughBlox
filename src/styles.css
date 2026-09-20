@@ -394,13 +394,17 @@ html.rl-modal-open { overflow: hidden !important; }
 
 /* JEB Seal of Quality ---------------------------------------------------- */
 .jeb-quality-section {
-  margin: 8px 0 28px;
+  margin: 0 0 20px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 0;
   color: inherit;
   font-family: "Builder Sans", "Helvetica Neue", Arial, sans-serif;
 }
+.jeb-quality-section + h1 { margin-top: 0; }
 .jeb-quality-head {
-  display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 13px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px;
 }
 .jeb-quality-head h2 { margin: 0; font-size: 22px; line-height: 1.2; color: inherit; }
 .jeb-quality-head p { margin: 5px 0 0; font-size: 13px; opacity: .66; }
@@ -415,14 +419,13 @@ html.rl-modal-open { overflow: hidden !important; }
   scrollbar-width: thin;
 }
 .jeb-quality-section.is-expanded .jeb-quality-track {
-  grid-auto-flow: row; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); overflow: visible;
+  grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(auto-fill, minmax(190px, 220px)); overflow: visible;
 }
 .jeb-quality-card { min-width: 0; }
 .jeb-quality-thumb {
   position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 9px; background: rgba(127,127,127,.12); color: inherit; text-decoration: none;
 }
 .jeb-quality-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.jeb-quality-thumb > span:not(.jeb-quality-corner) { display: grid; place-items: center; height: 100%; font-weight: 900; opacity: .5; }
 .jeb-quality-corner {
   position: absolute; right: 7px; bottom: 7px; padding: 4px 7px; border-radius: 6px; background: rgba(9,15,20,.88); color: #fff;
   font-size: 10px; font-weight: 900; letter-spacing: .02em;
@@ -432,10 +435,6 @@ html.rl-modal-open { overflow: hidden !important; }
 .jeb-quality-card-copy > a:hover { text-decoration: underline; }
 .jeb-quality-card-copy strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
 .jeb-quality-card-copy > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; opacity: .65; }
-.jeb-quality-details {
-  justify-self: start; appearance: none; border: 0; background: transparent; color: #168fff; padding: 2px 0; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer;
-}
-.jeb-quality-details:hover { text-decoration: underline; }
 .jeb-quality-empty {
   display: grid; gap: 5px; min-height: 88px; place-content: center; padding: 18px; border-radius: 10px; background: rgba(127,127,127,.07); text-align: center; font-size: 12px; opacity: .8;
 }
@@ -464,7 +463,7 @@ html.rl-modal-open { overflow: hidden !important; }
 .jeb-seal-overall { display: inline-flex; align-items: baseline; gap: 3px; }
 .jeb-seal-overall strong { font-size: 50px; line-height: 1; }
 .jeb-seal-overall span { color: #aeb4ba; font-size: 15px; }
-.jeb-seal-label { margin-top: 5px; font-weight: 800; }
+.jeb-seal-label { margin-bottom: 8px; color: #d3d6da; font-size: 12px; font-weight: 700; }
 .jeb-seal-date { margin-top: 5px; color: #aeb4ba; font-size: 12px; }
 .jeb-seal-criteria { display: grid; gap: 7px; margin-top: 22px; text-align: left; }
 .jeb-seal-criterion { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 9px 11px; border-radius: 8px; background: #2a2e32; }
@@ -472,7 +471,6 @@ html.rl-modal-open { overflow: hidden !important; }
 .jeb-seal-review { margin: 20px 0 0; color: #d1d5d9; line-height: 1.55; text-align: left; }
 .jeb-seal-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
 .jeb-seal-tags span { padding: 5px 8px; border-radius: 999px; background: #30353a; color: #cdd2d6; font-size: 11px; }
-.jeb-seal-open { display: inline-block; margin-top: 22px; padding: 9px 13px; border-radius: 8px; background: #f7f7f8; color: #17191b !important; text-decoration: none !important; font-weight: 800; }
 
 @media (max-width: 650px) {
   .jeb-quality-head { align-items: flex-start; flex-direction: column; }
@@ -514,19 +512,33 @@ html.rl-modal-open { overflow: hidden !important; }
 .jeb-quality-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .jeb-quality-title > img { width: 58px; height: 58px; object-fit: contain; flex: 0 0 auto; }
 .jeb-quality-fallback-logo { width: 52% !important; height: 52% !important; object-fit: contain !important; margin: auto; }
-.jeb-quality-seal {
-  position: absolute; right: 7px; top: 7px; width: 34px !important; height: 34px !important; object-fit: contain !important;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); z-index: 2;
+.jeb-quality-artwork { position: relative; }
+.jeb-quality-rating {
+  position: absolute; right: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 7px;
+  appearance: none; padding: 5px 10px 5px 5px; border: 1px solid rgba(255,255,255,.22); border-radius: 12px;
+  background: #202326; color: #fff; box-shadow: 0 3px 10px rgba(0,0,0,.24); font: inherit; cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
 }
-.jeb-quality-score {
-  position: absolute; right: 7px; bottom: 7px; padding: 3px 6px; border-radius: 999px; background: rgba(10,12,14,.84); color: #fff;
-  font-size: 10px; font-weight: 800; line-height: 1;
+.jeb-quality-rating:hover { background: #34383d; transform: translateY(-2px); }
+.jeb-quality-rating:focus-visible, .jeb-quality-thumb:focus-visible {
+  outline: 3px solid #168fff; outline-offset: 3px;
 }
+.jeb-quality-rating .jeb-quality-seal {
+  display: block; width: 32px; height: 32px; object-fit: contain; flex: 0 0 auto;
+}
+.jeb-quality-score { display: inline-flex; align-items: baseline; gap: 2px; line-height: 1; }
+.jeb-quality-score strong { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.jeb-quality-score > span { color: #c4c8ce; font-size: 11px; font-weight: 500; }
 .jeb-quality-corner { display: none !important; }
 .jeb-seal-game-badge img { width: 27px; height: 27px; object-fit: contain; flex: 0 0 auto; }
 .jeb-seal-game-badge { padding: 4px 9px 4px 5px; gap: 7px; border-color: rgba(220,55,55,.28); background: rgba(190,35,35,.07); }
 .jeb-seal-game-badge:hover { background: rgba(190,35,35,.12); }
-.jeb-seal-modal-logo { width: 64px; height: 64px; object-fit: contain; margin: 0 auto 4px; display: block; }
+.jeb-seal-award {
+  display: flex; align-items: center; justify-content: center; gap: 18px; margin: 4px 0 24px; padding: 18px 12px;
+  border: 1px solid rgba(220,80,65,.2); border-radius: 14px; background: linear-gradient(135deg, rgba(190,45,35,.12), rgba(255,255,255,.025));
+  text-align: left;
+}
+.jeb-seal-modal-logo { width: 76px; height: 76px; object-fit: contain; display: block; flex: 0 0 auto; }
 .jeb-seal-mark { display: none; }
 
 @media (max-width: 720px) {

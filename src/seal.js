@@ -3,6 +3,7 @@
   const U = RL.utils;
   const I = RL.i18n;
   let clientCache = { at: 0, payload: null };
+  let feedRequest = null;
   let syncing = false;
   const CLIENT_TTL = 60 * 1000;
 
@@ -17,7 +18,19 @@
   }
 
   async function getFeed(force = false) {
+    if (feedRequest) return feedRequest;
     if (!force && clientCache.payload && Date.now() - clientCache.at < CLIENT_TTL) return clientCache.payload;
+    // A new document must revalidate the feed even when the service worker
+    // still has a fresh six-hour cache from the previous page load.
+    feedRequest = requestFeed(force || !clientCache.payload);
+    try {
+      return await feedRequest;
+    } finally {
+      feedRequest = null;
+    }
+  }
+
+  async function requestFeed(force) {
     try {
       const response = await chrome.runtime.sendMessage({ type: 'JEB_GET_SEAL_FEED', force });
       const payload = response?.ok ? response : { ok: false, configured: true, error: response?.error || 'Unavailable' };
@@ -35,7 +48,16 @@
       document.querySelector('#content'),
       document.querySelector('.content')
     ].filter(Boolean);
-    return candidates.find(el => !el.closest('#rl-page-root') && el.getBoundingClientRect().width > 300) || null;
+    const host = candidates.find(el => !el.closest('#rl-page-root') && el.getBoundingClientRect().width > 300);
+    if (!host) return null;
+    const heading = host.querySelector('h1');
+    if (!heading) return null; // Wait for the Charts layout rather than inserting outside its gutters.
+    let anchor = heading;
+    while (anchor.parentElement !== host &&
+      /flex|grid/.test(getComputedStyle(anchor.parentElement).display)) {
+      anchor = anchor.parentElement;
+    }
+    return anchor;
   }
 
   function qualityGame(entry, metadata) {
@@ -68,15 +90,18 @@
     ].filter(Boolean).join(' · ');
     return `
       <article class="jeb-quality-card" data-jeb-quality-place="${escapeAttr(game.placeId)}">
-        <a class="jeb-quality-thumb" href="https://www.roblox.com/games/${escapeAttr(game.placeId)}">
+        <div class="jeb-quality-artwork">
+          <a class="jeb-quality-thumb" href="https://www.roblox.com/games/${escapeAttr(game.placeId)}" aria-label="${escapeAttr(game.name)}">
           ${game.thumbnail ? `<img src="${escapeAttr(game.thumbnail)}" alt="">` : `<img class="jeb-quality-fallback-logo" src="${asset('brand/jeb-logo.png')}" alt="">`}
-          <img class="jeb-quality-seal" src="${asset('brand/jeb-seal.png')}" alt="JEB Seal">
-          <span class="jeb-quality-score">${scoreLabel(game.score)}/10</span>
         </a>
+          <button class="jeb-quality-rating" type="button" data-jeb-quality-details="${escapeAttr(game.placeId)}" aria-label="${escapeAttr(I.t('sealOfQuality'))}: ${escapeAttr(game.name)}, ${scoreLabel(game.score)}/10">
+            <img class="jeb-quality-seal" src="${asset('brand/jeb-seal.png')}" alt="">
+            <span class="jeb-quality-score"><strong>${scoreLabel(game.score)}</strong><span>/10</span></span>
+          </button>
+        </div>
         <div class="jeb-quality-card-copy">
           <a href="https://www.roblox.com/games/${escapeAttr(game.placeId)}"><strong>${U.escapeHtml(game.name)}</strong></a>
           <span>${U.escapeHtml(bits)}</span>
-          <button class="jeb-quality-details" type="button" data-jeb-quality-details="${escapeAttr(game.placeId)}">${U.escapeHtml(I.t('sealOfQuality'))}</button>
         </div>
       </article>`;
   }
@@ -109,15 +134,18 @@
     overlay.innerHTML = `
       <section class="jeb-seal-panel" role="dialog" aria-modal="true">
         <button class="jeb-seal-close" type="button" aria-label="${escapeAttr(I.t('close'))}">×</button>
-        <img class="jeb-seal-modal-logo" src="${asset('brand/jeb-seal.png')}" alt="JEB Seal">
+        <div class="jeb-seal-award">
+          <img class="jeb-seal-modal-logo" src="${asset('brand/jeb-seal.png')}" alt="">
+          <div>
+            <div class="jeb-seal-label">${U.escapeHtml(I.t('sealOfQuality'))}</div>
+            <div class="jeb-seal-overall"><strong>${scoreLabel(entry.score)}</strong><span>/10</span></div>
+          </div>
+        </div>
         <h2>${U.escapeHtml(game.name || entry.title || `Game ${entry.placeId}`)}</h2>
-        <div class="jeb-seal-overall"><strong>${scoreLabel(entry.score)}</strong><span>/10</span></div>
-        <div class="jeb-seal-label">${U.escapeHtml(I.t('sealOfQuality'))}</div>
         ${entry.awardedAt ? `<div class="jeb-seal-date">${U.escapeHtml(I.t('sealAwarded'))} ${U.escapeHtml(I.date(entry.awardedAt))}</div>` : ''}
         ${criteriaRows(entry) ? `<div class="jeb-seal-criteria">${criteriaRows(entry)}</div>` : ''}
         ${entry.review ? `<p class="jeb-seal-review">${U.escapeHtml(entry.review)}</p>` : ''}
         ${tags.length ? `<div class="jeb-seal-tags">${tags.map(tag => `<span>${U.escapeHtml(tag)}</span>`).join('')}</div>` : ''}
-        <a class="jeb-seal-open" href="https://www.roblox.com/games/${escapeAttr(entry.placeId)}">${U.escapeHtml(I.t('sealOpenGame'))}</a>
       </section>`;
     overlay.addEventListener('click', e => {
       if (e.target === overlay || e.target.closest('.jeb-seal-close')) overlay.remove();
@@ -174,7 +202,7 @@
         </div>
       </div>
       <div data-jeb-quality-body><div class="jeb-quality-empty">${U.escapeHtml(I.t('loading'))}</div></div>`;
-    host.prepend(section);
+    host.insertAdjacentElement('beforebegin', section);
 
     section.querySelector('[data-jeb-quality-expand]').addEventListener('click', buttonEvent => {
       const expanded = section.classList.toggle('is-expanded');
