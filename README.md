@@ -28,15 +28,11 @@ Existing Lists use the same storage keys and remain compatible. Experimental Sma
 
 ## JEB Seal of Quality feed
 
-v0.7.0 can load the Seal dynamically from a free public GitHub JSON file. No JustEnoughBlox backend is required.
+From v0.7.1, the extension uses the official JEB Seal feed automatically:
 
-1. Create a public GitHub repository or Gist.
-2. Copy `data/seal-template.json` to a file named `seal.json` and replace the example game with your curated entries.
-3. Open the raw JSON file on GitHub and copy its `raw.githubusercontent.com` (or `gist.githubusercontent.com`) URL.
-4. Click the JustEnoughBlox extension icon, paste that URL under **JEB Seal of Quality**, and press **Save feed**.
-5. The extension caches the feed locally for 6 hours. The popup **Refresh** button forces an immediate reload.
+`https://raw.githubusercontent.com/filorisf/JEB-Seal-of-Quality/main/seal.json`
 
-Changing `seal.json` updates the JEB Seal selection without publishing a new extension version.
+Users cannot replace this URL. The feed is cached locally for 6 hours, and the popup **Refresh now** button forces an immediate reload. Updating `seal.json` in the official repository updates the certified selection without publishing a new extension version.
 
 
 ## v0.7.0 — Visual identity

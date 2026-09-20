@@ -64,12 +64,6 @@ li + li { margin-top: 3px; }
 }
 .seal-config .section-title { margin-bottom: 6px; color: #f7f7f8; }
 .seal-config .muted { margin: 0 0 12px; color: #aeb4ba; line-height: 1.4; }
-.seal-config label { display: block; margin-bottom: 6px; color: #c9ced3; font-size: 11px; font-weight: 700; }
-.seal-config input {
-  width: 100%; border: 1px solid #42484e; border-radius: 8px; background: #17191b; color: #f7f7f8;
-  padding: 9px 10px; outline: none; font: inherit;
-}
-.seal-config input:focus { border-color: #2d9cff; }
 .config-actions { display: flex; gap: 8px; margin-top: 9px; }
 .config-actions button {
   border: 0; border-radius: 8px; background: #f7f7f8; color: #17191b; padding: 8px 11px; font: inherit; font-weight: 700; cursor: pointer;
@@ -88,6 +82,6 @@ li + li { margin-top: 3px; }
   position: absolute; width: 82px; height: 82px; object-fit: contain; right: 4px; top: 3px;
   opacity: .95; pointer-events: none; filter: drop-shadow(0 5px 10px rgba(0,0,0,.22));
 }
-.seal-config .muted, .seal-config label, .seal-config input, .seal-config .config-actions, .seal-config .status { position: relative; z-index: 1; }
-.seal-config input { width: calc(100% + 74px); }
+
+.seal-config .muted, .seal-config .config-actions, .seal-config .status { position: relative; z-index: 1; }
 .seal-config .config-actions, .seal-config .status { width: calc(100% + 74px); }

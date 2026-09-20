@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "JustEnoughBlox",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "JustEnoughBlox enhances the Roblox experience",
   "permissions": [
     "storage"
@@ -14,8 +14,7 @@
     "https://users.roblox.com/*",
     "https://friends.roblox.com/*",
     "https://presence.roblox.com/*",
-    "https://raw.githubusercontent.com/*",
-    "https://gist.githubusercontent.com/*"
+    "https://raw.githubusercontent.com/*"
   ],
   "background": {
     "service_worker": "src/background.js"

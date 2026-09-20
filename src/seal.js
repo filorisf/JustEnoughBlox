@@ -20,11 +20,11 @@
     if (!force && clientCache.payload && Date.now() - clientCache.at < CLIENT_TTL) return clientCache.payload;
     try {
       const response = await chrome.runtime.sendMessage({ type: 'JEB_GET_SEAL_FEED', force });
-      const payload = response?.ok ? response : { ok: false, configured: false, error: response?.error || 'Unavailable' };
+      const payload = response?.ok ? response : { ok: false, configured: true, error: response?.error || 'Unavailable' };
       clientCache = { at: Date.now(), payload };
       return payload;
     } catch (error) {
-      return { ok: false, configured: false, error: error?.message || 'Unavailable' };
+      return { ok: false, configured: true, error: error?.message || 'Unavailable' };
     }
   }
 
@@ -84,10 +84,6 @@
   function setupMessage(section, payload) {
     const body = section.querySelector('[data-jeb-quality-body]');
     if (!body) return;
-    if (!payload?.configured) {
-      body.innerHTML = `<div class="jeb-quality-empty"><strong>${U.escapeHtml(I.t('sealNotConfigured'))}</strong><span>${U.escapeHtml(I.t('sealConfigurePopup'))}</span></div>`;
-      return;
-    }
     body.innerHTML = `<div class="jeb-quality-empty"><strong>${U.escapeHtml(I.t('sealNoGames'))}</strong><span>${U.escapeHtml(payload?.error || I.t('sealNoGamesHelp'))}</span></div>`;
   }
 

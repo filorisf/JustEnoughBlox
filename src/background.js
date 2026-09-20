@@ -554,22 +554,9 @@ async function getListRecommendations(placeIds, locale = 'en-US', limit = 10) {
 
 
 // JEB Seal of Quality -------------------------------------------------------
-const JEB_SEAL_FEED_URL_KEY = 'jeb_seal_feed_url_v1';
 const JEB_SEAL_FEED_CACHE_KEY = 'jeb_seal_feed_cache_v1';
 const JEB_SEAL_FEED_TTL = 6 * 60 * 60 * 1000;
-const DEFAULT_JEB_SEAL_FEED_URL = '';
-
-function validSealFeedUrl(raw) {
-  if (!raw) return '';
-  try {
-    const url = new URL(String(raw).trim());
-    if (url.protocol !== 'https:') return '';
-    if (!['raw.githubusercontent.com', 'gist.githubusercontent.com'].includes(url.hostname)) return '';
-    return url.toString();
-  } catch {
-    return '';
-  }
-}
+const JEB_SEAL_FEED_URL = 'https://raw.githubusercontent.com/filorisf/JEB-Seal-of-Quality/main/seal.json';
 
 function clampScore(value) {
   const n = Number(value);
@@ -610,30 +597,11 @@ function normalizeSealFeed(raw) {
   };
 }
 
-async function getSealFeedUrl() {
-  const result = await chrome.storage.local.get(JEB_SEAL_FEED_URL_KEY);
-  return validSealFeedUrl(result[JEB_SEAL_FEED_URL_KEY] || DEFAULT_JEB_SEAL_FEED_URL);
-}
-
-async function saveSealFeedUrl(raw) {
-  const cleanRaw = String(raw || '').trim();
-  if (!cleanRaw) {
-    await chrome.storage.local.remove([JEB_SEAL_FEED_URL_KEY, JEB_SEAL_FEED_CACHE_KEY]);
-    return '';
-  }
-  const url = validSealFeedUrl(cleanRaw);
-  if (!url) throw new Error('Use a raw.githubusercontent.com or gist.githubusercontent.com HTTPS JSON URL.');
-  await chrome.storage.local.set({ [JEB_SEAL_FEED_URL_KEY]: url });
-  const cached = (await chrome.storage.local.get(JEB_SEAL_FEED_CACHE_KEY))[JEB_SEAL_FEED_CACHE_KEY];
-  if (cached?.url && cached.url !== url) await chrome.storage.local.remove(JEB_SEAL_FEED_CACHE_KEY);
-  return url;
-}
-
-async function fetchSealJson(url) {
+async function fetchSealJson() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
   try {
-    const response = await fetch(url, { credentials: 'omit', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
+    const response = await fetch(JEB_SEAL_FEED_URL, { credentials: 'omit', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
     if (!response.ok) throw new Error(`Seal feed HTTP ${response.status}`);
     return await response.json();
   } finally {
@@ -642,24 +610,21 @@ async function fetchSealJson(url) {
 }
 
 async function getSealFeed(force = false) {
-  const url = await getSealFeedUrl();
-  if (!url) return { configured: false, data: { version: 1, updatedAt: '', games: [] }, cached: false };
-
   const cacheResult = await chrome.storage.local.get(JEB_SEAL_FEED_CACHE_KEY);
   const cached = cacheResult[JEB_SEAL_FEED_CACHE_KEY];
-  if (!force && cached?.url === url && cached?.data && Date.now() - Number(cached.fetchedAt || 0) < JEB_SEAL_FEED_TTL) {
-    return { configured: true, data: cached.data, cached: true, fetchedAt: cached.fetchedAt, url };
+  if (!force && cached?.url === JEB_SEAL_FEED_URL && cached?.data && Date.now() - Number(cached.fetchedAt || 0) < JEB_SEAL_FEED_TTL) {
+    return { configured: true, data: cached.data, cached: true, fetchedAt: cached.fetchedAt, url: JEB_SEAL_FEED_URL };
   }
 
   try {
-    const raw = await fetchSealJson(url);
+    const raw = await fetchSealJson();
     const data = normalizeSealFeed(raw);
-    const entry = { url, data, fetchedAt: Date.now() };
+    const entry = { url: JEB_SEAL_FEED_URL, data, fetchedAt: Date.now() };
     await chrome.storage.local.set({ [JEB_SEAL_FEED_CACHE_KEY]: entry });
-    return { configured: true, data, cached: false, fetchedAt: entry.fetchedAt, url };
+    return { configured: true, data, cached: false, fetchedAt: entry.fetchedAt, url: JEB_SEAL_FEED_URL };
   } catch (error) {
-    if (cached?.url === url && cached?.data) {
-      return { configured: true, data: cached.data, cached: true, stale: true, fetchedAt: cached.fetchedAt, url, error: error?.message || 'Feed unavailable.' };
+    if (cached?.url === JEB_SEAL_FEED_URL && cached?.data) {
+      return { configured: true, data: cached.data, cached: true, stale: true, fetchedAt: cached.fetchedAt, url: JEB_SEAL_FEED_URL, error: error?.message || 'Feed unavailable.' };
     }
     throw error;
   }
@@ -688,27 +653,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message?.type === 'JEB_SET_SEAL_FEED_URL') {
-    saveSealFeedUrl(message.url)
-      .then(async url => {
-        if (!url) return sendResponse({ ok: true, url: '', configured: false });
-        try {
-          const result = await getSealFeed(true);
-          sendResponse({ ok: true, url, configured: true, ...result });
-        } catch (error) {
-          sendResponse({ ok: false, url, configured: true, error: error?.message || 'Could not load this feed.' });
-        }
-      })
-      .catch(error => sendResponse({ ok: false, error: error?.message || 'Invalid feed URL.' }));
-    return true;
-  }
-
-  if (message?.type === 'JEB_GET_SEAL_FEED_URL') {
-    getSealFeedUrl()
-      .then(url => sendResponse({ ok: true, url }))
-      .catch(error => sendResponse({ ok: false, error: error?.message || 'Unable to read feed URL.' }));
-    return true;
-  }
 
   if (message?.type === 'JEB_GET_FRIENDS_PLAYING') {
     getFriendsPlaying()

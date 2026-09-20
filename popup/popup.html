@@ -10,7 +10,7 @@
   <header class="hero">
     <img class="hero-logo" src="../assets/brand/jeb-logo.png" alt="" width="52" height="52">
     <div>
-      <div class="title-row"><h1>JustEnoughBlox</h1><span id="version">v0.7.0</span></div>
+      <div class="title-row"><h1>JustEnoughBlox</h1><span id="version">v0.7.1</span></div>
       <p>JustEnoughBlox enhances the Roblox experience</p>
     </div>
   </header>
@@ -19,12 +19,9 @@
     <section class="seal-config">
       <img class="popup-settings-mascot" src="../assets/mascot/settings.png" alt="" aria-hidden="true">
       <div class="section-title">JEB Seal of Quality</div>
-      <p class="muted">Dynamic editorial feed for the Seal section shown above Roblox Charts.</p>
-      <label for="seal-url">GitHub raw JSON URL</label>
-      <input id="seal-url" type="url" spellcheck="false" placeholder="https://raw.githubusercontent.com/.../seal.json">
+      <p class="muted">Official JEB-curated selection, synced automatically from the public Seal database.</p>
       <div class="config-actions">
-        <button id="save-seal" type="button">Save feed</button>
-        <button id="refresh-seal" type="button" class="secondary">Refresh</button>
+        <button id="refresh-seal" type="button" class="secondary">Refresh now</button>
       </div>
       <div id="seal-status" class="status">Loading…</div>
     </section>
@@ -32,6 +29,16 @@
     <div class="section-title devlog-title">Devlog</div>
 
     <article class="release current">
+      <div class="release-head"><strong>v0.7.1</strong><span>Sep 20, 2026</span></div>
+      <h2>Official Seal feed</h2>
+      <ul>
+        <li>The JEB Seal now uses the official JEB feed automatically.</li>
+        <li>Removed custom Seal feed configuration from the extension.</li>
+        <li>Seal updates still sync from GitHub without publishing a new extension version.</li>
+      </ul>
+    </article>
+
+    <article class="release">
       <div class="release-head"><strong>v0.7.0</strong><span>Sep 20, 2026</span></div>
       <h2>JEB Seal of Quality</h2>
       <ul>
