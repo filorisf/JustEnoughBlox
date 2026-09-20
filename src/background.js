@@ -556,6 +556,7 @@ async function getListRecommendations(placeIds, locale = 'en-US', limit = 10) {
 // JEB Seal of Quality -------------------------------------------------------
 const JEB_SEAL_FEED_CACHE_KEY = 'jeb_seal_feed_cache_v1';
 const JEB_SEAL_FEED_TTL = 6 * 60 * 60 * 1000;
+const JEB_SEAL_API_URL = 'https://api.github.com/repos/filorisf/JEB-Seal-of-Quality/contents/seal.json?ref=main';
 const JEB_SEAL_FEED_URL = 'https://raw.githubusercontent.com/filorisf/JEB-Seal-of-Quality/main/seal.json';
 
 function clampScore(value) {
@@ -601,7 +602,7 @@ async function fetchSealJson() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
   try {
-    const response = await fetch(JEB_SEAL_FEED_URL, { credentials: 'omit', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
+    const response = await fetch(JEB_SEAL_API_URL, { credentials: 'omit', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/vnd.github.raw+json' } });
     if (!response.ok) throw new Error(`Seal feed HTTP ${response.status}`);
     return await response.json();
   } finally {

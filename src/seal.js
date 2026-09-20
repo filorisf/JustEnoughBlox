@@ -5,6 +5,7 @@
   let clientCache = { at: 0, payload: null };
   let feedRequest = null;
   let syncing = false;
+  let lastGame = null;
   const CLIENT_TTL = 60 * 1000;
 
   function asset(path) { return chrome.runtime.getURL(`assets/${path}`); }
@@ -245,6 +246,7 @@
   }
 
   async function sync(currentGame = null) {
+    lastGame = currentGame;
     if (syncing) return;
     syncing = true;
     try {
@@ -254,6 +256,17 @@
       syncing = false;
     }
   }
+
+  // Refresh mounted UI when the popup (or another tab) saves a new feed.
+  chrome.storage.onChanged.addListener((changes, area) => {
+    const entry = changes.jeb_seal_feed_cache_v1?.newValue;
+    if (area !== 'local' || !entry?.data || feedRequest) return;
+    clientCache = { at: Date.now(), payload: { ok: true, configured: true, ...entry } };
+    document.getElementById('jeb-quality-rail')?.remove();
+    document.getElementById('jeb-seal-game-badge')?.remove();
+    document.getElementById('jeb-seal-detail-overlay')?.remove();
+    sync(lastGame).catch(error => RL.ui?.toast(error.message, 'error'));
+  });
 
   RL.seal = { sync, getFeed, showDetails };
 })();

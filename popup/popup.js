@@ -28,6 +28,8 @@
     setStatus('Refreshing…');
     try {
       await load(true);
+    } catch (error) {
+      setStatus(error?.message || 'Unable to refresh the official Seal feed.', 'error');
     } finally {
       refresh.disabled = false;
     }
