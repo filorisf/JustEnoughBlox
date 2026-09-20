@@ -11,6 +11,13 @@
   let renderToken = 0;
   let lastRouteKey = null;
 
+  function handleAsync(action) {
+    return async (...args) => {
+      try { return await action(...args); }
+      catch (error) { toast(error.message, 'error'); }
+    };
+  }
+
   function escapeAttr(value) {
     return U.escapeHtml(String(value || '')).replace(/"/g, '&quot;');
   }
@@ -225,14 +232,14 @@
     shellEl.querySelectorAll('[data-home]').forEach(el => el.addEventListener('click', openListsHome));
     const input = shellEl.querySelector('input');
     setTimeout(() => input?.focus(), 30);
-    shellEl.querySelector('[data-create-form]')?.addEventListener('submit', async e => {
+    shellEl.querySelector('[data-create-form]')?.addEventListener('submit', handleAsync(async e => {
       e.preventDefault();
       try {
         const { result, synced } = await RL.storage.createList(input.value);
         toast(synced ? I.t('listCreated') : I.t('listCreatedLocal'), synced ? 'default' : 'warning');
         openListPage(result.id);
       } catch (error) { toast(error.message, 'error'); }
-    });
+    }));
   }
 
   async function resizeCover(file) {
@@ -355,7 +362,7 @@
         ? `<div class="rl-recommend-list">${recommendations.map(rec => recommendationCard(rec, existing.has(String(rec.placeId)))).join('')}</div>`
         : `<div class="rl-recommend-empty">${U.escapeHtml(I.t('recommendationsEmpty'))}</div>`;
 
-      host.querySelectorAll('[data-add-recommend]').forEach(button => button.addEventListener('click', async () => {
+      host.querySelectorAll('[data-add-recommend]').forEach(button => button.addEventListener('click', handleAsync(async () => {
         const placeId = button.dataset.addRecommend;
         const rec = recommendations.find(item => String(item.placeId) === String(placeId));
         if (!rec) return;
@@ -370,7 +377,7 @@
         } catch (error) {
           toast(error.message, 'error');
         }
-      }));
+      })));
     } catch (error) {
       host.innerHTML = `<div class="rl-recommend-empty">${U.escapeHtml(I.t('recommendationError'))}</div>`;
     } finally {
@@ -454,24 +461,24 @@
 
     shellEl.querySelector('[data-home]')?.addEventListener('click', openListsHome);
     shellEl.querySelector('[data-share]')?.addEventListener('click', () => go(`${ROUTE_HOME}/share/${encodeURIComponent(list.id)}`));
-    shellEl.querySelector('[data-rename]')?.addEventListener('click', async () => {
+    shellEl.querySelector('[data-rename]')?.addEventListener('click', handleAsync(async () => {
       const name = prompt(I.t('renameList'), list.name);
       if (name === null) return;
       try { await RL.storage.renameList(list.id, name); toast(I.t('listRenamed')); renderPage(); } catch (e) { toast(e.message, 'error'); }
-    });
-    shellEl.querySelector('[data-delete]')?.addEventListener('click', async () => {
+    }));
+    shellEl.querySelector('[data-delete]')?.addEventListener('click', handleAsync(async () => {
       if (!confirm(I.t('deleteConfirm', { name: list.name }))) return;
       await RL.storage.deleteList(list.id);
       toast(I.t('listDeleted'));
       openListsHome();
-    });
-    shellEl.querySelector('[data-reset-cover]')?.addEventListener('click', async () => {
+    }));
+    shellEl.querySelector('[data-reset-cover]')?.addEventListener('click', handleAsync(async () => {
       await RL.storage.removeListThumbnail(list.id);
       await RL.storage.touchList(list.id);
       toast(I.t('thumbnailReset'));
       renderPage();
-    });
-    shellEl.querySelector('[data-cover-file]')?.addEventListener('change', async e => {
+    }));
+    shellEl.querySelector('[data-cover-file]')?.addEventListener('change', handleAsync(async e => {
       const file = e.target.files?.[0];
       if (!file) return;
       try {
@@ -482,14 +489,14 @@
         toast(I.t('thumbnailUpdated'));
         renderPage();
       } catch (error) { toast(error.message, 'error'); }
-    });
+    }));
     shellEl.querySelector('[data-load-recommendations]')?.addEventListener('click', () => loadRecommendations(shellEl, list, { force: true }));
 
-    shellEl.querySelectorAll('[data-remove-game]').forEach(btn => btn.addEventListener('click', async () => {
+    shellEl.querySelectorAll('[data-remove-game]').forEach(btn => btn.addEventListener('click', handleAsync(async () => {
       await RL.storage.removeGame(list.id, btn.dataset.removeGame);
       toast(I.t('removeFromList'));
       renderPage();
-    }));
+    })));
 
 
     // YouTube-style drag & drop ordering. Only the small handle starts a drag,
@@ -531,7 +538,7 @@
           targetRow.classList.add(after ? 'drop-after' : 'drop-before');
         });
 
-        targetRow.addEventListener('drop', async e => {
+        targetRow.addEventListener('drop', handleAsync(async e => {
           if (!draggedPlaceId || targetRow.dataset.placeId === draggedPlaceId) return;
           e.preventDefault();
           const rows = [...gameListEl.querySelectorAll('.rl-game-list-row')];
@@ -557,7 +564,7 @@
           } catch (error) {
             toast(error.message, 'error');
           }
-        });
+        }));
       });
     }
   }
@@ -582,12 +589,12 @@
           <div class="rl-form-actions"><button class="rl-secondary" data-back>${U.escapeHtml(I.t('back'))}</button><button class="rl-primary" data-copy>${U.escapeHtml(I.t('copyCode'))}</button></div>
         </div>`;
       shellEl.querySelectorAll('[data-back]').forEach(el => el.addEventListener('click', () => openListPage(list.id)));
-      shellEl.querySelector('[data-copy]')?.addEventListener('click', async () => {
+      shellEl.querySelector('[data-copy]')?.addEventListener('click', handleAsync(async () => {
         try { await navigator.clipboard.writeText(code); } catch {
           const area = shellEl.querySelector('textarea'); area?.select(); document.execCommand('copy');
         }
         toast(I.t('shareCodeCopied'));
-      });
+      }));
     } catch (e) { toast(e.message, 'error'); }
   }
 
@@ -601,10 +608,10 @@
       </form>`;
     shellEl.querySelectorAll('[data-home]').forEach(el => el.addEventListener('click', openListsHome));
     const area = shellEl.querySelector('textarea'); setTimeout(() => area?.focus(), 30);
-    shellEl.querySelector('[data-import-form]')?.addEventListener('submit', async e => {
+    shellEl.querySelector('[data-import-form]')?.addEventListener('submit', handleAsync(async e => {
       e.preventDefault();
       try { importPreviewCache = await RL.share.decodeList(area.value); go(`${ROUTE_HOME}/import/preview`); } catch (error) { toast(error.message, 'error'); }
-    });
+    }));
   }
 
   function renderImportPreviewPage(shellEl, token) {
@@ -614,17 +621,27 @@
     shellEl.innerHTML = `
       ${pageHeader(imported.name, `${gameCount(imported.games.length)} · ${U.escapeHtml(I.t('sharedBy'))} ${U.escapeHtml(imported.creator)}`, `<button class="rl-primary" data-import>${U.escapeHtml(I.t('importListButton'))}</button>`)}
       <div class="rl-preview-list">${imported.games.slice(0, 30).map((g, i) => `<div><span>${i + 1}</span><strong>${U.escapeHtml(g.title || `Game ${g.placeId}`)}</strong><small>${U.escapeHtml(g.placeId)}</small></div>`).join('')}</div>`;
-    shellEl.querySelector('[data-import]')?.addEventListener('click', async () => {
+    shellEl.querySelector('[data-import]')?.addEventListener('click', handleAsync(async () => {
       try {
         const { result, synced } = await RL.storage.importList(imported);
         importPreviewCache = null;
         toast(synced ? I.t('listImported') : I.t('importedLocal'), synced ? 'default' : 'warning');
         openListPage(result.id);
       } catch (e) { toast(e.message, 'error'); }
-    });
+    }));
   }
 
   async function renderPage() {
+    try { await renderPageContent(); }
+    catch (error) {
+      const shellEl = pageRoot?.querySelector('.rl-page-shell');
+      if (shellEl) shellEl.textContent = error.message;
+      toast(error.message, 'error');
+    }
+  }
+
+  async function renderPageContent() {
+
     const route = parseRoute();
     setNavActive(!!route);
     if (!route) return destroyPageRoot();
@@ -671,12 +688,12 @@
       </div>
       <button class="rl-secondary rl-full" data-create-and-add>${U.escapeHtml(I.t('createNewList'))}</button>`;
 
-    body.querySelectorAll('[data-add-list]').forEach(btn => btn.addEventListener('click', async () => {
+    body.querySelectorAll('[data-add-list]').forEach(btn => btn.addEventListener('click', handleAsync(async () => {
       const { synced } = await RL.storage.addGame(btn.dataset.addList, game);
       toast(synced ? I.t('addedToList') : I.t('addedLocal'), synced ? 'default' : 'warning');
       closeOverlay();
-    }));
-    body.querySelector('[data-create-and-add]')?.addEventListener('click', async () => {
+    })));
+    body.querySelector('[data-create-and-add]')?.addEventListener('click', handleAsync(async () => {
       const name = prompt(I.t('newListName'), I.t('playLater'));
       if (!name) return;
       try {
@@ -685,10 +702,10 @@
         toast(I.t('listCreatedGameAdded'));
         closeOverlay();
       } catch (error) { toast(error.message, 'error'); }
-    });
+    }));
   }
 
   window.addEventListener('hashchange', () => syncRoute(true));
   window.addEventListener('resize', updatePageOffset);
-  RL.ui = { toast, showAddToList, closeOverlay, detectUsername, renderListsHome: openListsHome, openListsHome, openListPage, isListsRoute, syncRoute };
+  RL.ui = { toast, showAddToList: handleAsync(showAddToList), closeOverlay, detectUsername, renderListsHome: openListsHome, openListsHome, openListPage, isListsRoute, syncRoute };
 })();

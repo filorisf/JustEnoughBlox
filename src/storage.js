@@ -10,6 +10,26 @@
 
   const emptyState = () => ({ version: 1, lists: [], updatedAt: Date.now() });
 
+  const RELOAD_MESSAGE = "JustEnoughBlox was reloaded. Refresh this page to continue.";
+  let contextInvalidated = false;
+
+  function isContextInvalidated(error) {
+    return contextInvalidated || /extension context invalidated/i.test(error?.message || "");
+  }
+
+  async function storageCall(area, method, value) {
+    try {
+      if (contextInvalidated || !globalThis.chrome?.runtime?.id) {
+        throw new Error("Extension context invalidated.");
+      }
+      return await chrome.storage[area][method](value);
+    } catch (error) {
+      if (!isContextInvalidated(error)) throw error;
+      contextInvalidated = true;
+      throw new Error(RELOAD_MESSAGE);
+    }
+  }
+
   async function compressState(state) {
     const json = JSON.stringify(state);
     const gz = await U.gzip(U.utf8(json));
@@ -25,12 +45,12 @@
   }
 
   async function loadFromSync() {
-    const metaResult = await chrome.storage.sync.get(SYNC_META_KEY);
+    const metaResult = await storageCall("sync", "get", SYNC_META_KEY);
     const meta = metaResult[SYNC_META_KEY];
     if (!meta || !Number.isInteger(meta.chunks) || meta.chunks < 1) return null;
 
     const keys = Array.from({ length: meta.chunks }, (_, i) => `${SYNC_CHUNK_PREFIX}${i}`);
-    const result = await chrome.storage.sync.get(keys);
+    const result = await storageCall("sync", "get", keys);
     let encoded = "";
     for (const key of keys) {
       if (typeof result[key] !== "string") return null;
@@ -44,23 +64,23 @@
     const chunks = [];
     for (let i = 0; i < encoded.length; i += SYNC_CHUNK_SIZE) chunks.push(encoded.slice(i, i + SYNC_CHUNK_SIZE));
 
-    const previous = (await chrome.storage.sync.get(SYNC_META_KEY))[SYNC_META_KEY];
+    const previous = (await storageCall("sync", "get", SYNC_META_KEY))[SYNC_META_KEY];
     const payload = {
       [SYNC_META_KEY]: { version: 1, chunks: chunks.length, updatedAt: state.updatedAt }
     };
     chunks.forEach((chunk, index) => { payload[`${SYNC_CHUNK_PREFIX}${index}`] = chunk; });
-    await chrome.storage.sync.set(payload);
+    await storageCall("sync", "set", payload);
 
     if (previous?.chunks > chunks.length) {
       const stale = [];
       for (let i = chunks.length; i < previous.chunks; i++) stale.push(`${SYNC_CHUNK_PREFIX}${i}`);
-      if (stale.length) await chrome.storage.sync.remove(stale);
+      if (stale.length) await storageCall("sync", "remove", stale);
     }
   }
 
 
   async function getAllListThumbnails() {
-    const result = await chrome.storage.local.get(THUMBNAILS_KEY);
+    const result = await storageCall("local", "get", THUMBNAILS_KEY);
     const value = result[THUMBNAILS_KEY];
     return value && typeof value === "object" ? value : {};
   }
@@ -76,7 +96,7 @@
     const thumbs = await getAllListThumbnails();
     if (dataUrl) thumbs[listId] = dataUrl;
     else delete thumbs[listId];
-    await chrome.storage.local.set({ [THUMBNAILS_KEY]: thumbs });
+    await storageCall("local", "set", { [THUMBNAILS_KEY]: thumbs });
     return dataUrl || "";
   }
 
@@ -105,19 +125,20 @@
           migrated.state.updatedAt = Date.now();
           try { await saveToSync(migrated.state); } catch {}
         }
-        await chrome.storage.local.set({ [LOCAL_KEY]: migrated.state });
+        await storageCall("local", "set", { [LOCAL_KEY]: migrated.state });
         return migrated.state;
       }
     } catch (error) {
+      if (isContextInvalidated(error)) throw error;
       console.warn("[JustEnoughBlox] Sync load failed; using local backup.", error);
     }
 
-    const local = (await chrome.storage.local.get(LOCAL_KEY))[LOCAL_KEY];
+    const local = (await storageCall("local", "get", LOCAL_KEY))[LOCAL_KEY];
     const state = local && local.version === 1 && Array.isArray(local.lists) ? local : emptyState();
     const migrated = removeLegacySmartLists(state);
     if (migrated.changed) {
       migrated.state.updatedAt = Date.now();
-      await chrome.storage.local.set({ [LOCAL_KEY]: migrated.state });
+      await storageCall("local", "set", { [LOCAL_KEY]: migrated.state });
       try { await saveToSync(migrated.state); } catch {}
     }
     return migrated.state;
@@ -125,11 +146,12 @@
 
   async function save(state) {
     state.updatedAt = Date.now();
-    await chrome.storage.local.set({ [LOCAL_KEY]: state });
+    await storageCall("local", "set", { [LOCAL_KEY]: state });
     let synced = true;
     try {
       await saveToSync(state);
     } catch (error) {
+      if (isContextInvalidated(error)) throw error;
       synced = false;
       console.warn("[JustEnoughBlox] Sync save failed; local backup is safe.", error);
     }

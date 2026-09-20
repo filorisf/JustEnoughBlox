@@ -97,6 +97,7 @@
   }
 
   function refresh() {
+    if (!globalThis.chrome?.runtime?.id) return;
     injectNavButton();
     injectGameButton();
 
