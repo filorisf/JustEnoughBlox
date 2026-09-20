@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>JustEnoughBlox</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="hero">
+    <img class="hero-logo" src="../assets/brand/jeb-logo.png" alt="" width="52" height="52">
+    <div>
+      <div class="title-row"><h1>JustEnoughBlox</h1><span id="version">v0.7.0</span></div>
+      <p>JustEnoughBlox enhances the Roblox experience</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="seal-config">
+      <img class="popup-settings-mascot" src="../assets/mascot/settings.png" alt="" aria-hidden="true">
+      <div class="section-title">JEB Seal of Quality</div>
+      <p class="muted">Dynamic editorial feed for the Seal section shown above Roblox Charts.</p>
+      <label for="seal-url">GitHub raw JSON URL</label>
+      <input id="seal-url" type="url" spellcheck="false" placeholder="https://raw.githubusercontent.com/.../seal.json">
+      <div class="config-actions">
+        <button id="save-seal" type="button">Save feed</button>
+        <button id="refresh-seal" type="button" class="secondary">Refresh</button>
+      </div>
+      <div id="seal-status" class="status">Loading…</div>
+    </section>
+
+    <div class="section-title devlog-title">Devlog</div>
+
+    <article class="release current">
+      <div class="release-head"><strong>v0.7.0</strong><span>Sep 20, 2026</span></div>
+      <h2>JEB Seal of Quality</h2>
+      <ul>
+        <li>Added the JEB Seal of Quality rail above Roblox Charts.</li>
+        <li>Added detailed /10 editorial scores and review breakdowns.</li>
+        <li>Seal games are loaded dynamically from a free GitHub JSON feed.</li>
+        <li>Added the new JustEnoughBlox logo.</li>
+      </ul>
+    </article>
+
+    <article class="release">
+      <div class="release-head"><strong>v0.5.0</strong><span>Sep 20, 2026</span></div>
+      <h2>List recommendations</h2>
+      <ul>
+        <li>Added recommendations based on games already inside each List.</li>
+        <li>Smart Lists were removed to keep Lists simple.</li>
+        <li>Moved the Devlog into this extension popup.</li>
+      </ul>
+    </article>
+
+    <article class="release">
+      <div class="release-head"><strong>v0.3.5</strong></div>
+      <h2>List ordering</h2>
+      <ul><li>Drag and drop games to reorder a List.</li></ul>
+    </article>
+
+    <article class="release">
+      <div class="release-head"><strong>v0.3.4</strong></div>
+      <h2>Friends playing</h2>
+      <ul><li>Friend avatars appear above games they are currently playing.</li></ul>
+    </article>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

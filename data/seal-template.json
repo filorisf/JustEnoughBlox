@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "updatedAt": "2026-09-20",
+  "games": [
+    {
+      "placeId": "REPLACE_ME",
+      "universeId": "REPLACE_ME",
+      "score": 9.2,
+      "awardedAt": "2026-09-20",
+      "title": "Replace with the Roblox game title",
+      "review": "Short editorial explanation of why this game earned the JEB Seal of Quality.",
+      "tags": [
+        "Adventure",
+        "Polished"
+      ],
+      "scores": {
+        "gameplay": 9.4,
+        "polish": 9.3,
+        "artDirection": 9.5,
+        "originality": 8.9,
+        "playerRespect": 9.0
+      }
+    }
+  ]
+}

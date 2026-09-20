@@ -1,0 +1,72 @@
+{
+  "manifest_version": 3,
+  "name": "JustEnoughBlox",
+  "version": "0.7.0",
+  "description": "JustEnoughBlox enhances the Roblox experience",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.roblox.com/*",
+    "https://apis.roblox.com/*",
+    "https://games.roblox.com/*",
+    "https://thumbnails.roblox.com/*",
+    "https://users.roblox.com/*",
+    "https://friends.roblox.com/*",
+    "https://presence.roblox.com/*",
+    "https://raw.githubusercontent.com/*",
+    "https://gist.githubusercontent.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.roblox.com/*"
+      ],
+      "js": [
+        "src/utils.js",
+        "src/storage.js",
+        "src/share.js",
+        "src/meta.js",
+        "src/i18n.js",
+        "src/recommendations.js",
+        "src/seal.js",
+        "src/ui.js",
+        "src/content.js"
+      ],
+      "css": [
+        "src/styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "JustEnoughBlox",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_popup": "popup/popup.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/brand/*.png",
+        "assets/mascot/*.png"
+      ],
+      "matches": [
+        "https://www.roblox.com/*"
+      ]
+    }
+  ]
+}
